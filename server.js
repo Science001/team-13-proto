@@ -51,6 +51,44 @@ app.get('/db', (req, res) => {
     })
 })
 
+app.post('/sensor-data', (req, res, next) => {
+    // var { temperature, humidity, aqi, hcho, coords } = req.body
+    // if(!temperature || !humidity || !aqi || !hcho || !coords) {
+    //     res.status(400).send("Not all expected data was sent")
+    // }
+    // else
+    next()
+}, (req, res) => {
+    console.log("SENSOR DATA:", req.body)
+    var { temperature, humidity, aqi, hcho, coords } = req.body
+    temperature = temperature || ''
+    humidity = humidity || ''
+    aqi = aqi || ''
+    hcho = hcho || ''
+    coords = coords || ''
+    pool.query("insert into sensor_data(temperature, humidity, aqi, hcho, coords) values ($1, $2, $3, $4, $5)", [temperature, humidity, aqi, hcho, coords], (err, _) => {
+        if(err) {
+            console.log("Error inserting sensor data: ", err)
+            res.status(500).send(err)
+        }
+        else {
+            res.send("INSERTED INTO DB")
+        }
+    })
+})
+
+app.get('/sensor-data', (req, res) => {
+    pool.query("select * from sensor_data", (err, result) => {
+        if(err) {
+            console.log("Error getting sensor data: ", err)
+            res.status(500).send(err)
+        }
+        else {
+            res.send(result.rows)
+        }
+    })
+})
+
 app.use('/api', require('./api'))
 
 // -------------------------------------------------------------------------------
