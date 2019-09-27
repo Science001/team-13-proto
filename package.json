@@ -4,7 +4,9 @@
   "description": "Prototype built for the Singapore India Hackathon 2019 by Team 13",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +16,9 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "morgan": "^1.9.1",
-    "pg": "^7.12.1"
+    "next": "^9.0.6",
+    "pg": "^7.12.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
   }
 }

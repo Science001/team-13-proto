@@ -1,96 +1,41 @@
-// Imports -----------------------------------------------------------------------
+// Imports
 const express = require('express')
-const { Pool } = require('pg')
-const crypto = require('crypto')
-const bodyParser = require('body-parser')
+const next = require('next')
 const session = require('express-session')
-const path = require('path')
 const morgan = require('morgan')
-// -------------------------------------------------------------------------------
 
-// Initialize --------------------------------------------------------------------
-require('dotenv').config()
-const app = express()
-app.use(bodyParser.json())
-app.use(morgan('dev'))
-app.use(session({
-    name: 'sessionID',
-    secret: 'averyrandommixedrealitybasedarvrgoodbadseesunrisefrommselfwecanridesseeyouthroughmylucideyesftw',
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 },
-    resave: true,
-    saveUninitialized: false
-}))
-const port = process.env.PORT
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: true
-})
-// -------------------------------------------------------------------------------
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dev })
+const handle = app.getRequestHandler()
 
-// Helpers -----------------------------------------------------------------------
-function hash(input, salt) {
-    var hashed = crypto.pbkdf2Sync(input, salt, 10000, 512, 'sha512');
-    return ["pdkdf2", "10000", salt, hashed.toString('hex')].join('$');
-}
-// -------------------------------------------------------------------------------
+app.prepare()
+  .then(() => {
+    // Initialize --------------------------------------------------------------------
+    const server = express()
+    require('dotenv').config()
+    server.use(morgan('dev'))
+    server.use(session({
+      name: 'sessionID',
+      secret: 'averyrandommixedrealitybasedarvrgoodbadseesunrisefrommselfwecanridesseeyouthroughmylucideyesftw',
+      cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 },
+      resave: true,
+      saveUninitialized: false
+    }))
+    const port = process.env.PORT
+    // -------------------------------------------------------------------------------
 
-//Code Starts here ---------------------------------------------------------------
-app.get('/', (req, res) => {
-    res.send({message: "Team 13, FTW!"})
-})
+    server.use('/api', require('./api'))
 
-app.get('/db', (req, res) => {
-    pool.query('SELECT now()', (err, result) => {
-        if(err) {
-            console.log("Error querying DB: ", err)
-            res.status(500).send({message: "Error querying database"})
-        }
-        else {
-            res.send(result.rows[0])
-        }
+    server.get('*', (req, res) => {
+      return handle(req, res)
     })
-})
 
-app.post('/sensor-data', (req, res, next) => {
-    // var { temperature, humidity, aqi, hcho, coords } = req.body
-    // if(!temperature || !humidity || !aqi || !hcho || !coords) {
-    //     res.status(400).send("Not all expected data was sent")
-    // }
-    // else
-    next()
-}, (req, res) => {
-    console.log("SENSOR DATA:", req.body)
-    var { temperature, humidity, aqi, hcho, coords } = req.body
-    temperature = temperature || ''
-    humidity = humidity || ''
-    aqi = aqi || ''
-    hcho = hcho || ''
-    coords = coords || ''
-    pool.query("insert into sensor_data(temperature, humidity, aqi, hcho, coords) values ($1, $2, $3, $4, $5)", [temperature, humidity, aqi, hcho, coords], (err, _) => {
-        if(err) {
-            console.log("Error inserting sensor data: ", err)
-            res.status(500).send(err)
-        }
-        else {
-            res.send("INSERTED INTO DB")
-        }
+    server.listen(port, (err) => {
+      if (err) throw err
+      console.log(`> Ready on port ${port}`)
     })
-})
-
-app.get('/sensor-data', (req, res) => {
-    pool.query("select * from sensor_data", (err, result) => {
-        if(err) {
-            console.log("Error getting sensor data: ", err)
-            res.status(500).send(err)
-        }
-        else {
-            res.send(result.rows)
-        }
-    })
-})
-
-app.use('/api', require('./api'))
-
-// -------------------------------------------------------------------------------
-
-app.listen(port, () => console.log(`Listening at port ${port}`))
+  })
+  .catch((ex) => {
+    console.error(ex.stack)
+    process.exit(1)
+  })
