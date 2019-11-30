@@ -68,7 +68,7 @@ api.post('/sensor-data', (req, res, next) => {
     })
 })
 
-api.get('/sensor-data', (req, res) => {
+api.get('/all-sensor-data', (req, res) => {
     pool.query("select * from sensor_data", (err, result) => {
         if (err) {
             console.log("Error getting sensor data: ", err)

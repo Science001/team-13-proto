@@ -52,7 +52,7 @@ class App extends React.Component {
         </AppBar>
         <div style={{ marginTop: "150px", display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography style={{marginBottom: 30}}>Current AQI</Typography>
-          <ReactSpeedometer minvalue={0} maxValue={500} value={this.state.aqi} startColor="#00E400" endColor="#FF0000" />
+          <ReactSpeedometer minvalue={0} maxValue={500} value={700} startColor="#00E400" endColor="#FF0000" />
           <div>
             <VictoryChart
               theme={VictoryTheme.material}
